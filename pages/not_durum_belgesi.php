@@ -1,20 +1,175 @@
- <section id="main-content">
+<?php
+
+function getApi($token,$url){
+    $response = \Httpful\Request::get($url)
+        ->addHeaders(array(
+            'Authorization' => 'Token '.$token,
+            'Content-Type' => 'application/json'))
+        ->expectsJson()
+        ->send();
+    return json_decode($response,true);
+}
+$user_name=$_SESSION["userName"];
+$token=$_SESSION["key"];
+$users_json=getApi($token,'http://127.0.0.1:8000/users/?format=json');
+$students_json=getApi($token,'http://127.0.0.1:8000/students/?format=json');
+$departments_json=getApi($token,'http://127.0.0.1:8000/departments/?format=json');
+$faculties_json=getApi($token,'http://127.0.0.1:8000/faculties/?format=json');
+$register_json=getApi($token,'http://127.0.0.1:8000/registers/?format=json');
+$offered_course_json=getApi($token,'http://127.0.0.1:8000/offered_courses/?format=json');
+$courses_json=getApi($token,'http://127.0.0.1:8000/courses/?format=json');
+$register_notes_json=getApi($token,'http://127.0.0.1:8000/register_notes/?format=json');
+
+for($i=0;$i<$users_json["count"];$i++){
+    if($users_json["results"][$i]["username"]==$user_name){
+        $array=explode("/", $users_json["results"][$i]["url"]);
+        $user_id=$array[count($array)-2];
+        $first_name=$users_json["results"][$i]["first_name"];
+        $last_name=$users_json["results"][$i]["last_name"];
+    }
+}
+for($i=0;$i<$students_json["count"];$i++){
+    if($students_json["results"][$i]["user"]==$user_id){
+        $department_id=$students_json["results"][$i]["department"];
+        $number=$students_json["results"][$i]["number"];
+        $image=$students_json["results"][$i]["image"];
+        $active_record_semester=$students_json["results"][$i]["active_record_semester"];
+    }
+}
+for($i=0;$i<$departments_json["count"];$i++){
+    if(intval($departments_json["results"][$i]["department_code"])==intval($department_id)){
+        $faculty_id=$departments_json["results"][$i]["faculty"];
+        $department_name=$departments_json["results"][$i]["department_name"];
+    }
+}
+for($i=0;$i<$faculties_json["count"];$i++){
+    $array=explode("/", $faculties_json["results"][$i]["url"]);
+    if($array[count($array)-2]==$faculty_id){
+        $faculty_name=$faculties_json["results"][$i]["faculty_name"];
+    }
+}
+//////////////////////////////////////////////////////////////////////////////////////
+for($i=1;$i<=$active_record_semester;$i++){
+	$courses_id[$i]=array();
+}
+$k=1;
+for($i=0;$i<count($register_json["results"]);$i++){
+    if($register_json["results"][$i]["student"]==$user_id){
+        $offered_course_id=$register_json["results"][$i]["offered_course"];
+        for($j=0;$j<count($offered_course_json["results"]);$j++){
+			$array=explode("/", $offered_course_json["results"][$j]["url"]);
+			if($array[count($array)-2]==$offered_course_id){
+				$l=$offered_course_json["results"][$j]["semester"];
+				array_push($courses_id[$l],$offered_course_json["results"][$j]["course"]);
+			}
+		}
+    }
+}
+
+for($i=1;$i<=$active_record_semester;$i++){
+	$harf_notu[$i]=array();
+}
+
+for($i=1;$i<=$active_record_semester;$i++){
+	foreach($courses_id[$i] as $value){
+		for($j=0;$j<count($offered_course_json["results"]);$j++){
+			if($value==$offered_course_json["results"][$j]["course"]){
+				$array=explode("/", $offered_course_json["results"][$j]["url"]);
+				$offered_course_id=$array[count($array)-2];
+				for($k=0;$k<count($register_json["results"]);$k++){
+					if($register_json["results"][$k]["offered_course"]==$offered_course_id && $register_json["results"][$k]["student"]==$user_id){
+						$array=explode("/", $register_json["results"][$j]["url"]);
+						$register_id=$array[count($array)-2];
+						for($l=0;$l<count($register_notes_json["results"]);$l++){
+							if($register_notes_json["results"][$l]["register"]==$register_id){
+								$vize=intval($register_notes_json["results"][$l]["mid_exam"]);
+								if($register_notes_json["results"][$l]["make_up_exam_status"]!="true"){
+									$final=intval($register_notes_json["results"][$l]["final_exam"]);
+									$ort=(((0.4)*$vize)+((0.6)*$final));	
+								}
+								else
+								{
+									$but=intval($register_notes_json["results"][$l]["make_up_exam"]);
+									$ort=(((0.4)*$vize)+((0.6)*$but));
+								}
+								switch ($ort){
+										case $ort==0:
+											$harf="FF";
+											break;
+										case $ort>=90&&$ort<=100:
+											$harf="AA";
+											break;
+										case $ort>=85&&$ort<=89:
+											$harf="BA";
+											break;
+										case $ort>=80&&$ort<85:
+											$harf="BB";
+											break;
+										case $ort>=70&&$ort<=79:
+											$harf="CB";
+											break;    
+										case $ort>=60&&$ort<=69:
+											$harf="CC";
+											break;
+										case $ort>=55&&$ort<=59:
+											$harf="DC";
+											break;
+                                        case $ort>=50&&$ort<55:
+											$harf="DD";
+											break;
+										case $ort>=45&&$ort<=49:
+											$harf="FD";
+											break;  	
+										case $ort>=40&&$ort<45:
+											$harf="FF";
+											break;  
+										case $ort>=30&&$ort<=39:
+											$harf="FF";
+											break;     
+										case $ort>=20&&$ort<=29:
+											$harf="FF";
+											break;     
+										case $ort>=1&&$ort<=19:
+											$harf="FF";
+											break;  										
+								}
+								array_push($harf_notu[$i],$harf);
+							}
+							
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+$genel_kredi=0;
+$genel_ortalama=0;
+?>
+
+
+
+
+
+
+<section id="main-content">
           <section class="wrapper">
 		  
               <!-- page start------------------------------------------------------------------------------------------------------>
            
-                <table id="table1" class="table table-bordered table1" back>
+                <table id="table1" class="table table-bordered" back>
                             <td rowspan="9" style="width: 150px">
-                                            <img  src="..." style="width:150px;">
+                                            <img  src="<?php echo $image; ?>" style="width:150px;">
                             </td>
                               <tr>
-                                  <td rowspan="<2></2>">Akademik Birim	</td>
-                                  <td>Mühendislik Fakültesi</td>                   
+                                  <td rowspan="<2></2>">Akademik Birim:	</td>
+                                  <td> <?php echo $faculty_name; ?></td>
                               </tr>
                               
                               <tr>
                                   <td>Bölüm</td>
-                                  <td>BİLGİSAYAR MÜHENDİSLİĞİ(N.Ö.) - Anadal	</td>
+                                  <td><?php echo $department_name; ?></td>
                                  
                               </tr>
                               <tr>
@@ -23,35 +178,34 @@
                               </tr>
                               <tr>
                                   <td>İsim	</td>
-                                  <td colspan="2">Muhammed</td>
+                                  <td colspan="2"><?php echo $first_name; ?></td>
                                 
                               </tr>
                               <tr>
                                   <td>Soyad	</td>
-                                  <td colspan="2">Aras</td>
+                                  <td colspan="2"><?php echo $last_name; ?></td>
                                  
                               </tr>
-                              <tr>
-                                  <td>Kayıt Tarihi	</td>
-                                  <td colspan="2">05.09.2012</td>                                 
-                              </tr>
+                             
                               <tr>
                                   <td>Aktif mi	</td>
                                   <td colspan="2">Aktif</td>                                 
                               </tr>
                               <tr>
                                   <td>Öğrenci No	</td>
-                                  <td colspan="2">120401040</td>
+                                  <td colspan="2"><?php echo $number; ?></td>
                                   
                               </tr>
                               
                         </table>
 
-            <div class="row">
+            
+                <?php for($i=1;$i<=$active_record_semester;$i++){ 
+                  $donem_kredi=0;$sayac=0;$donem_ortalama=0; 
+                ?>  
                   <div class="col-sm-6">
                       <section class="panel">
-                          <header class="panel-heading no-border">
-                              1.Yarıyıl                          </header>
+                          <header class="panel-heading no-border"><?php echo $i ?>.Yarıyıl</header>
                           <table class="table table-bordered">
                               <thead>
                               <tr>
@@ -61,281 +215,99 @@
                                   <th>Akts</th>
                                   <th>Katsayı</th>
                                   <th>Başarı Puanı</th>
-                                  
+                                 
                               </tr>
                               </thead>
                               <tbody>
+                                       
+                         <?php foreach($courses_id[$i] as $value){
+		                            for($j=0;$j<count($courses_json["results"]);$j++){
+			                            $array=explode("/", $courses_json["results"][$j]["url"]);
+			                            if($array[count($array)-2]==$value){
+                                            switch ($harf_notu[$i][$sayac]){ 
+                                                        case "AA":
+                                                            $katsayi=4;
+                                                            break;
+                                                        case "BA":
+                                                            $katsayi=3.5;
+                                                            break;
+                                                        case "BB":
+                                                            $katsayi=3;
+                                                            break;
+                                                        case "CB":
+                                                            $katsayi=2.5;
+                                                            break;    
+                                                        case "CC":
+                                                            $katsayi=2;
+                                                            break;
+                                                        case "DC":
+                                                            $katsayi=1.5;
+                                                            break;
+                                                        case "DD":
+                                                            $katsayi=1;
+                                                            break;
+                                                        case "FD":
+                                                            $katsayi=0.5;
+                                                            break;  		
+                                                        case"FF":
+                                                            $katsayi=0;
+                                                            break;  									
+                                                } ?>
+                              
                               <tr>
-                                  <td >BLM123</td>
-                                  <td>Algoritma ve Programlama	</td>
-                                  <td>3,00</td>
-                                  <td>7,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
+                                  <td><?php  echo $courses_json["results"][$j]["code"];?></td>
+                                  <td><?php   echo $courses_json["results"][$j]["name"];?></td>
+                                  <td><?php   echo $credit=$courses_json["results"][$j]["credit"];?></td>
+                                  <td><?php   echo $ects=$courses_json["results"][$j]["ects"];?></td>
+                                  <td><?php   echo $katsayi; ?></td>
+                                  <td><?php echo $harf_notu[$i][$sayac]; ?></td>
                               </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>Atatürk İlkeleri ve İnkılap Tarihi I		</td>
-                                  <td>2,00</td>
-                                  <td>1,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                <td >BLM123</td>
-                                  <td>Bilgisayar Mühendisliğine Giriş	</td>
-                                  <td>3,00</td>
-                                  <td>6,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>Genel Fizik I	</td>
-                                  <td>3,00</td>
-                                  <td>6,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>İngilizce I</td>
-                                  <td>2,00</td>
-                                  <td>2,00</td>
-                                  <td>3,50</td>
-                                  <td>BA</td>
-                              </tr>
-
-                             
+                            
+                            <?php $sayac=$sayac+1;
+                            if($sayac>=count($courses_id[$i])){ $sayac=0; }
+                            $donem_kredi=$donem_kredi+$credit;
+                            $donem_ortalama=$donem_ortalama+($credit*$katsayi);
+                        }}} 
+                            $genel_kredi=$donem_kredi+$genel_kredi;
+                            $genel_ortalama=$donem_ortalama+$genel_ortalama;                        
+                            ?>
                               </tbody>
                               
                                <tfoot>
                                 <tr >
-                                  
                                   <td></td>
                                   <td></td>
-                                  <td>
-                                  <b>Ağırlıklı Ortalama
-                                  </td>
+                                  <td><b>Ağırlıklı Ortalama</td>
                                   <td></td>
                                   <td></td>
-                                  <td </td>
-                                 
+                                  <td </td> 
                               </tr>
                                 <tr>
                                   <td </td>
                                   <td><b>Dönem</td>
-                                  <td>40</td>
-                                  <td>18</td>
-                                  <td>18</td>
-                                  <td>2,22</td>
+                                  <td><?php echo $donem_ortalama ?></td></td>
+                                  <td><?php echo $donem_kredi ?></td>
+                                  <td><?php echo $donem_kredi ?></td>
+                                  <td><?php echo round($donem_ortalama/$donem_kredi,2) ?></td>
                               </tr>
                                 <tr>
                                   
                                   <td> </td>
                                   <td><b>Genel</td>
-                                  <td>40,00</td>
-                                  <td>18,00</td>
-                                  <td>18</td>
-                                  <td>2,22 </td>
+                                  <td><?php echo $genel_ortalama ?></td></td>
+                                  <td><?php echo $genel_kredi ?></td>
+                                  <td><?php echo $genel_kredi ?></td>
+                                  <td><?php echo round($genel_ortalama/$genel_kredi,2)?> </td>
                               </tr>
                               </tfoot>
-        
                           </table>
                       </section>
                   </div>
-                  <div class="col-sm-6">
-                      <section class="panel">
-                          <header class="panel-heading no-border">
-                              2.Yarıyıl                          </header>
-                          <table class="table table-bordered">
-                              <thead>
-                              <tr>
-                                  <th>Ders Kodu</th>
-                                  <th>Ders Adı</th>
-                                  <th>Kredi</th>
-                                  <th>Akts</th>
-                                  <th>Katsayı</th>
-                                  <th>Başarı Puanı</th>
-                                  
-                              </tr>
-                              </thead>
-                              <tbody>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>Algoritma ve Programlama	</td>
-                                  <td>3,00</td>
-                                  <td>7,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>Atatürk İlkeleri ve İnkılap Tarihi I		</td>
-                                  <td>2,00</td>
-                                  <td>1,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                <td >BLM123</td>
-                                  <td>Bilgisayar Mühendisliğine Giriş	</td>
-                                  <td>3,00</td>
-                                  <td>6,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>Genel Fizik I		</td>
-                                  <td>3,00</td>
-                                  <td>6,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>İngilizce I</td>
-                                  <td>2,00</td>
-                                  <td>2,00</td>
-                                  <td>3,50</td>
-                                  <td>BA</td>
-                              </tr>
-                              </tbody>
-                          </table>
-                  </div>
-              </div>
-
-
-              <div class="row">
-                  <div class="col-sm-6">
-                      <section class="panel">
-                          <header class="panel-heading no-border">
-                              1.Yarıyıl                          </header>
-                          <table class="table table-bordered">
-                              <thead>
-                              <tr>
-                                  <th>Ders Kodu</th>
-                                  <th>Ders Adı</th>
-                                  <th>Kredi</th>
-                                  <th>Akts</th>
-                                  <th>Katsayı</th>
-                                  <th>Başarı Puanı</th>
-                                  
-                              </tr>
-                              </thead>
-                              <tbody>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>Algoritma ve Programlama	</td>
-                                  <td>3,00</td>
-                                  <td>7,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>Atatürk İlkeleri ve İnkılap Tarihi I		</td>
-                                  <td>2,00</td>
-                                  <td>1,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                <td >BLM123</td>
-                                  <td>Bilgisayar Mühendisliğine Giriş	</td>
-                                  <td>3,00</td>
-                                  <td>6,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>Genel Fizik I		</td>
-                                  <td>3,00</td>
-                                  <td>6,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>İngilizce I</td>
-                                  <td>2,00</td>
-                                  <td>2,00</td>
-                                  <td>3,50</td>
-                                  <td>BA</td>
-                              </tr>
-                              </tbody>
-
-                          </table>
-                      </section>
-                  </div>
-                  <div class="col-sm-6">
-                      <section class="panel">
-                          <header class="panel-heading no-border">
-                              2.Yarıyıl                          </header>
-                          <table class="table table-bordered">
-                              <thead>
-                              <tr>
-                                  <th>Ders Kodu</th>
-                                  <th>Ders Adı</th>
-                                  <th>Kredi</th>
-                                  <th>Akts</th>
-                                  <th>Katsayı</th>
-                                  <th>Başarı Puanı</th>
-                                  
-                              </tr>
-                              </thead>
-                              <tbody>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>Algoritma ve Programlama	</td>
-                                  <td>3,00</td>
-                                  <td>7,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>Atatürk İlkeleri ve İnkılap Tarihi I		</td>
-                                  <td>2,00</td>
-                                  <td>1,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                <td >BLM123</td>
-                                  <td>Bilgisayar Mühendisliğine Giriş	</td>
-                                  <td>3,00</td>
-                                  <td>6,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>Genel Fizik I		</td>
-                                  <td>3,00</td>
-                                  <td>6,00</td>
-                                  <td>2,00</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td >BLM123</td>
-                                  <td>İngilizce I</td>
-                                  <td>2,00</td>
-                                  <td>2,00</td>
-                                  <td>3,50</td>
-                                  <td>BA</td>
-                              </tr>
-                              </tbody>
-                          </table>
-                  </div>
-              </div>
-
-
-
-
+                <?php } ?>
+                  
 
               <!-- page end-------------------------------------------------------------------------------------------------------->
           </section>
       </section>
+
+      
