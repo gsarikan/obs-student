@@ -49,6 +49,10 @@ table tr th { color: #688a7e;}
     height: 100%;
 }
 
+.span-class{
+	font-weight: bold;
+}
+
 .Creative-pro, .Creative-pro h3{
     display: block;
     position: fixed;
@@ -3431,8 +3435,9 @@ ul.inbox-pagination li {
 .bio-row {
     width: 50%;
     float: left;
-    margin-bottom: 10px;
+    margin-bottom: 25px;
     padding:0 15px;
+	font-size: 15px;
 }
 
 .bio-row p span {
