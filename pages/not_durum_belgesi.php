@@ -1,14 +1,6 @@
 <?php
 
-function getApi($token,$url){
-    $response = \Httpful\Request::get($url)
-        ->addHeaders(array(
-            'Authorization' => 'Token '.$token,
-            'Content-Type' => 'application/json'))
-        ->expectsJson()
-        ->send();
-    return json_decode($response,true);
-}
+
 $user_name=$_SESSION["userName"];
 $token=$_SESSION["key"];
 $users_json=getApi($token,'http://127.0.0.1:8000/users/?format=json');
@@ -288,7 +280,7 @@ $genel_ortalama=0;
                                   <td><?php echo $donem_ortalama ?></td></td>
                                   <td><?php echo $donem_kredi ?></td>
                                   <td><?php echo $donem_kredi ?></td>
-                                  <td><?php echo round($donem_ortalama/$donem_kredi,2) ?></td>
+                                  <td><?php if($donem_kredi!=0) echo round($donem_ortalama/$donem_kredi,2); else echo 0; ?></td>
                               </tr>
                                 <tr>
                                   
@@ -297,7 +289,7 @@ $genel_ortalama=0;
                                   <td><?php echo $genel_ortalama ?></td></td>
                                   <td><?php echo $genel_kredi ?></td>
                                   <td><?php echo $genel_kredi ?></td>
-                                  <td><?php echo round($genel_ortalama/$genel_kredi,2)?> </td>
+                                  <td><?php if($genel_kredi!=0) echo round($genel_ortalama/$genel_kredi,2); else echo 0;?> </td>
                               </tr>
                               </tfoot>
                           </table>
