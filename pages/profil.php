@@ -160,7 +160,7 @@
 									<div class="form-group">	    
 										<label class="col-lg-2 control-label" ><strong>Güncel Email :</strong></label>             
 											<div class="col-lg-6">
-                                                <input type="text" class="form-control" name="email" value="<?php echo "$email" ?>" id="email" placeholder="Email Adresi">
+                                                <input type="text" maxlength="254" class="form-control" name="email" value="<?php echo "$email" ?>" id="email" placeholder="Email Adresi">
                                             </div>  
                                     </div>
 												  									  
