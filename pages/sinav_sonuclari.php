@@ -1,3 +1,168 @@
+<?php
+
+$user_name=$_SESSION["userName"];
+$token=$_SESSION["key"];
+$users_json=getApi($token,'http://127.0.0.1:8000/users/?format=json');
+$students_json=getApi($token,'http://127.0.0.1:8000/students/?format=json');
+$departments_json=getApi($token,'http://127.0.0.1:8000/departments/?format=json');
+$faculties_json=getApi($token,'http://127.0.0.1:8000/faculties/?format=json');
+$register_json=getApi($token,'http://127.0.0.1:8000/registers/?format=json');
+$offered_course_json=getApi($token,'http://127.0.0.1:8000/offered_courses/?format=json');
+$courses_json=getApi($token,'http://127.0.0.1:8000/courses/?format=json');
+$register_notes_json=getApi($token,'http://127.0.0.1:8000/register_notes/?format=json');
+$lecturers_json=getApi($token,'http://127.0.0.1:8000/lecturers/?format=json');
+
+
+for($i=0;$i<$users_json["count"];$i++){
+    if($users_json["results"][$i]["username"]==$user_name){
+        $array=explode("/", $users_json["results"][$i]["url"]);
+        $user_id=$array[count($array)-2];
+    }
+}
+
+for($i=0;$i<$students_json["count"];$i++){
+    if($students_json["results"][$i]["user"]==$user_id){
+        $active_record_semester=$students_json["results"][$i]["active_record_semester"];
+        $array=explode("/", $students_json["results"][$i]["url"]);
+        $student_id=$array[count($array)-2];
+    }
+}
+
+
+for($i=1;$i<=$active_record_semester;$i++){
+	$courses_id[$i]=array();
+}
+$k=1;
+for($i=0;$i<count($register_json["results"]);$i++){
+    if($register_json["results"][$i]["student"]==$student_id){
+        $offered_course_id=$register_json["results"][$i]["offered_course"];
+        for($j=0;$j<count($offered_course_json["results"]);$j++){
+			$array=explode("/", $offered_course_json["results"][$j]["url"]);
+			if($array[count($array)-2]==$offered_course_id){
+				$l=$offered_course_json["results"][$j]["semester"];
+				array_push($courses_id[$l],$offered_course_json["results"][$j]["course"]);
+			}
+		}
+    }
+}
+
+
+function getNote($courseId){
+        $user_name=$_SESSION["userName"];
+        $token=$_SESSION["key"];
+        $register_json=getApi($token,'http://127.0.0.1:8000/registers/?format=json');
+        $offered_course_json=getApi($token,'http://127.0.0.1:8000/offered_courses/?format=json');
+        $courses_json=getApi($token,'http://127.0.0.1:8000/courses/?format=json');
+        $register_notes_json=getApi($token,'http://127.0.0.1:8000/register_notes/?format=json');
+        $users_json=getApi($token,'http://127.0.0.1:8000/users/?format=json');
+        $students_json=getApi($token,'http://127.0.0.1:8000/students/?format=json');
+
+        
+        $notes[]="";
+        $harf="";
+        $final=0;
+        $but=0;
+        $ort=0;
+        $value=$courseId;
+        for($i=0;$i<$users_json["count"];$i++){
+            if($users_json["results"][$i]["username"]==$user_name){
+                $array=explode("/", $users_json["results"][$i]["url"]);
+                $user_id=$array[count($array)-2];
+            }
+        }
+        for($i=0;$i<$students_json["count"];$i++){
+            if($students_json["results"][$i]["user"]==$user_id){
+                $active_record_semester=$students_json["results"][$i]["active_record_semester"];
+                $array=explode("/", $students_json["results"][$i]["url"]);
+                $student_id=$array[count($array)-2];
+            }
+        }
+            for($j=0;$j<count($offered_course_json["results"]);$j++){
+                if($value==$offered_course_json["results"][$j]["course"]){
+                    $array=explode("/", $offered_course_json["results"][$j]["url"]);
+                    $offered_course_id=$array[count($array)-2];
+                    for($k=0;$k<count($register_json["results"]);$k++){
+                        if($register_json["results"][$k]["offered_course"]==$offered_course_id && $register_json["results"][$k]["student"]==$student_id){
+                            $array=explode("/", $register_json["results"][$k]["url"]);
+                            $register_id=$array[count($array)-2];
+                            for($l=0;$l<count($register_notes_json["results"]);$l++){
+                                if($register_notes_json["results"][$l]["register"]==$register_id){
+                                    $vize=intval($register_notes_json["results"][$l]["mid_exam"]);
+                                    //array_push($notes,$vize);
+                                    
+                                    if($register_notes_json["results"][$l]["make_up_exam_status"]!="true"){
+                                        $final=intval($register_notes_json["results"][$l]["final_exam"]);
+                                        $ort=(((0.4)*$vize)+((0.6)*$final));
+                                        $ort=round($ort,0);
+                                    }
+                                    else
+                                    {
+                                        $final=intval($register_notes_json["results"][$l]["final_exam"]);
+                                        $but=intval($register_notes_json["results"][$l]["make_up_exam"]);
+                                        $ort=(((0.4)*$vize)+((0.6)*$but));
+                                        $ort=round($ort,0);
+                                      	
+                                    }
+                                    switch ($ort){
+                                            case $ort==0:
+                                                $harf="FF";
+                                                break;
+                                            case $ort>=90&&$ort<=100:
+                                                $harf="AA";
+                                                break;
+                                            case $ort>=85&&$ort<=89:
+                                                $harf="BA";
+                                                break;
+                                            case $ort>=80&&$ort<85:
+                                                $harf="BB";
+                                                break;
+                                            case $ort>=70&&$ort<=79:
+                                                $harf="CB";
+                                                break;    
+                                            case $ort>=60&&$ort<=69:
+                                                $harf="CC";
+                                                break;
+                                            case $ort>=55&&$ort<=59:
+                                                $harf="DC";
+                                                break;
+                                            case $ort>=50&&$ort<55:
+                                                $harf="DD";
+                                                break;
+                                            case $ort>=45&&$ort<=49:
+                                                $harf="FD";
+                                                break;  	
+                                            case $ort>=40&&$ort<45:
+                                                $harf="FF";
+                                                break;  
+                                            case $ort>=30&&$ort<=39:
+                                                $harf="FF";
+                                                break;     
+                                            case $ort>=20&&$ort<=29:
+                                                $harf="FF";
+                                                break;     
+                                            case $ort>=1&&$ort<=19:
+                                                $harf="FF";
+                                                break;       										
+                                    }
+                                    $notes[0]=$vize;
+                                    $notes[1]=$final;
+                                    $notes[2]=$but;	
+                                    $notes[3]=$ort;	
+                                    $notes[4]=$harf;	 
+                                    $notes[5]=$register_notes_json["results"][$l]["make_up_exam_status"];	
+                                    
+                                    return $notes;
+                                }
+                                
+                            }
+                        }
+                    }
+                }
+            }
+        }
+ 
+?>
+
 <section id="main-content">
           <section class="wrapper">
 		  <div class="row">
@@ -9,13 +174,16 @@
          
 
               <header class="panel-heading no-border">
-                          
-                            <select class="form-control input-lg m-bot15">
-                             <option>2015-2016 Güz Dönemi</option>
-                             <option>2015-2016 Bahar Dönemi</option>
-                             <option>2016-2017 Güz Dönemi</option>
-                             <option>2016-2017 Bahar Dönemi</option>
+                    <form action="#" method="POST">      
+                    <select class="form-control input-lg m-bot15" name="semester">
+                        <?php for($i=1;$i<=$active_record_semester;$i++){  ?> 
+                        
+                             <option value="<?php echo $i; ?>"?><?php echo $i; ?>. Yarıyıl</option>
+                             
+                        <?php } ?>
                             </select>
+                            <input type="submit" name="submit" value="Görüntüle" />
+                    </form>
 
                           </header>
                           <table class="table table-bordered">
@@ -33,65 +201,55 @@
                               </tr>
                               </thead>
                               <tbody>
+
+                              <?php 
+                             
+                            $i=$_POST['semester'];
+                              foreach($courses_id[$i] as $value){
+		                            for($j=0;$j<count($courses_json["results"]);$j++){
+			                            $array=explode("/", $courses_json["results"][$j]["url"]);
+			                            if($array[count($array)-2]==$value){
+                                        
+                                            $notes=getNote($value);
+                                            
+                            ?>
+                                             
                               <tr>
-                                  <td>15BLM12</td>
-                                  <td>Windows azure ile bulut Bilisim</td>
-                                  <td>İsmail Kahraman</td>
-                                  <td>90</td>
-                                  <td>90</td>
-                                  <td></td>
+                                  <td><?php  echo $courses_json["results"][$j]["code"];?></td>
+                                  <td><?php  echo $courses_json["results"][$j]["name"];?></td>
+                                  <td>
+                                  <?php
+                                  for($x=0;$x<count($courses_json["results"]);$x++){
+                                    $array=explode("/", $courses_json["results"][$x]["url"]);
+                                        if($array[count($array)-2]==$value){
+                                            $lecturer_id=$courses_json["results"][$x]["lecturer"];
+                                                for($y=0;$y<count($lecturers_json["results"]);$y++){
+                                                    $array=explode("/", $lecturers_json["results"][$y]["url"]);
+                                                        if($array[count($array)-2]==$lecturer_id){
+                                                            $degree=$lecturers_json["results"][$y]["degree"];
+                                                            $userid=$lecturers_json["results"][$y]["user"];
+                                                            for($z=0;$z<count($users_json["results"]);$z++){
+                                                                $array=explode("/", $users_json["results"][$z]["url"]);
+                                                                if($array[count($array)-2]==$userid){
+                                                                    echo $degree.$users_json["results"][$z]["first_name"]." ".$users_json["results"][$z]["last_name"];
+                                                                }       
+                                                            }
+                                                        }
+                                                }
+                                        }
+                                  } ?>
+                                  
+                                  </td>
+                                  <td><?php  echo "$notes[0]"; ?></td>
+                                  <td><?php  echo "$notes[1]"; ?></td>
+                                  <td><?php if($notes[5]=="true"){ echo $notes[2];} ?></td>
                                   <td>2017</td>
-                                  <td>90</td>
-                                  <td>AA</td>
+                                  <td><?php  echo $notes[3]; ?></td>
+                                  <td><?php  echo $notes[4]; ?></td>
 
                               </tr>
-                              <tr>
-                                  <td>15BLM13</td>
-                                  <td>Formal diller</td>
-                                  <td>İsmail Kadayıf</td>
-                                  <td>90</td>
-                                  <td>35</td>
-                                  <td>50</td>
-                                  <td>2017</td>
-                                  <td>65</td>
-                                  <td>CC</td>
-                              </tr>
-                              <tr>
-                                  <td>16BLM12</td>
-                                  <td>Görüntü işleme</td>
-                                  <td>İsmail Kahraman</td>
-                                  <td>80</td>
-                                  <td>70</td>
-                                  <td></td>
-                                  <td>2017</td>
-                                  <td>75</td>
-                                  <td>CB</td>
-                                 
-                              </tr>
-                               <tr>
-                                  <td>16BLM13</td>
-                                  <td>Kuantum Bilgisayar</td>
-                                  <td>İhsan Yılmaz</td>
-                                  <td>100</td>
-                                  <td>90</td>
-                                  <td></td>
-                                  <td>23.08.1991</td>
-                                  <td>95</td>
-                                  <td>AA</td>
-                                  
-                              </tr>
-                              <tr>
-                                  <td>15BLM13</td>
-                                  <td>Bilgisayar ağları</td>
-                                  <td>Necdet Yücel</td>
-                                  <td>10</td>
-                                  <td>10</td>
-                                  <td>10</td>
-                                  <td>23.08.1991</td>
-                                  <td>10</td>
-                                  <td>FF</td>
-                                  
-                              </tr>
+                              <?php  }}} ?>
+
                               </tbody>
                           </table>
 
