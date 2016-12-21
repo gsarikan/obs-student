@@ -1,7 +1,7 @@
 <?php session_start();
     
 	include "../includes/config.php";
-    include "../includes/functions.php";
+        include "../includes/functions.php";
 
 	$user_token = $_SESSION["key"];
 	$userName = $_SESSION["userName"];
