@@ -75,7 +75,7 @@ for($i=1;$i<=$active_record_semester;$i++){
 				$offered_course_id=$array[count($array)-2];
 				for($k=0;$k<$register_json["count"];$k++){
 					if($register_json["results"][$k]["offered_course"]==$offered_course_id && $register_json["results"][$k]["student"]==$student_id){
-						$array=explode("/", $register_json["results"][$j]["url"]);
+						$array=explode("/", $register_json["results"][$k]["url"]);
 						$register_id=$array[count($array)-2];
 						for($l=0;$l<$register_notes_json["count"];$l++){
 							if($register_notes_json["results"][$l]["register"]==$register_id){
