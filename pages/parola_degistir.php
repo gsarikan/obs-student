@@ -82,21 +82,21 @@
 												  <div class="form-group">	 
 													  <label class="col-lg-2 control-label">Eski Şifreniz</label>             
 													  <div class="col-lg-6">
-                                                          <input type="password" class="form-control" name="old_password" id="old_password" placeholder="Eski Şifre">
+                                                          <input type="password" maxlength="128" class="form-control" name="old_password" id="old_password" placeholder="Eski Şifre">
                                                       </div>
                                                   </div>
 												  
 												  <div class="form-group"> 
                                                       <label class="col-lg-2 control-label">Yeni Şifreniz</label>
                                                       <div class="col-lg-6">
-                                                          <input type="password" class="form-control" name="new_password1" id="new_password1" placeholder="Yeni Şifre">
+                                                          <input type="password" maxlength="128" class="form-control" name="new_password1" id="new_password1" placeholder="Yeni Şifre">
                                                       </div>
                                                   </div>
 												  
 												  <div class="form-group"> 
                                                       <label class="col-lg-2 control-label">Yeni Şifreniz (Tekrar)</label>
                                                       <div class="col-lg-6">
-                                                          <input type="password" class="form-control" name="new_password2" id="new_password2" placeholder="Yeni Şifre (Tekrar)">
+                                                          <input type="password" maxlength="128" class="form-control" name="new_password2" id="new_password2" placeholder="Yeni Şifre (Tekrar)">
                                                       </div>
                                                   </div>
 												  
