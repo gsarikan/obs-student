@@ -1,6 +1,18 @@
 <?php
 
-
+function getApi($token,$url){
+    $response = \Httpful\Request::get($url)
+        ->addHeaders(array(
+            'Authorization' => 'Token '.$token,
+            'Content-Type' => 'application/json'))
+        ->expectsJson()
+        ->send();
+		
+			return json_decode($response,true);
+		
+	
+    //return json_decode($response,true);
+}
 $user_name=$_SESSION["userName"];
 $token=$_SESSION["key"];
 $users_json=getApi($token,'http://127.0.0.1:8000/users/?format=json');
@@ -26,6 +38,8 @@ for($i=0;$i<$students_json["count"];$i++){
         $number=$students_json["results"][$i]["number"];
         $image=$students_json["results"][$i]["image"];
         $active_record_semester=$students_json["results"][$i]["active_record_semester"];
+        $array=explode("/", $students_json["results"][$i]["url"]);
+        $student_id=$array[count($array)-2];
     }
 }
 for($i=0;$i<$departments_json["count"];$i++){
@@ -40,23 +54,27 @@ for($i=0;$i<$faculties_json["count"];$i++){
         $faculty_name=$faculties_json["results"][$i]["faculty_name"];
     }
 }
-//////////////////////////////////////////////////////////////////////////////////////
-for($i=1;$i<=$active_record_semester;$i++){
+
+
+for($i=1;$i<=$active_record_semester;$i++)
 	$courses_id[$i]=array();
-}
+
 $k=1;
-for($i=0;$i<count($register_json["results"]);$i++){
-    if($register_json["results"][$i]["student"]==$user_id){
+
+for($i=0;$i<$register_json["count"];$i++){
+    if($register_json["results"][$i]["student"]==$student_id){
         $offered_course_id=$register_json["results"][$i]["offered_course"];
-        for($j=0;$j<count($offered_course_json["results"]);$j++){
+        for($j=0;$j<$offered_course_json["count"];$j++){
 			$array=explode("/", $offered_course_json["results"][$j]["url"]);
 			if($array[count($array)-2]==$offered_course_id){
 				$l=$offered_course_json["results"][$j]["semester"];
-				array_push($courses_id[$l],$offered_course_json["results"][$j]["course"]);
+                echo $l."->".$offered_course_json["results"][$j]["course"];
+                array_push($courses_id[$l],$offered_course_json["results"][$j]["course"]);
 			}
 		}
     }
 }
+
 
 for($i=1;$i<=$active_record_semester;$i++){
 	$harf_notu[$i]=array();
@@ -64,25 +82,27 @@ for($i=1;$i<=$active_record_semester;$i++){
 
 for($i=1;$i<=$active_record_semester;$i++){
 	foreach($courses_id[$i] as $value){
-		for($j=0;$j<count($offered_course_json["results"]);$j++){
+		for($j=0;$j<$offered_course_json["count"];$j++){
 			if($value==$offered_course_json["results"][$j]["course"]){
 				$array=explode("/", $offered_course_json["results"][$j]["url"]);
 				$offered_course_id=$array[count($array)-2];
-				for($k=0;$k<count($register_json["results"]);$k++){
-					if($register_json["results"][$k]["offered_course"]==$offered_course_id && $register_json["results"][$k]["student"]==$user_id){
+				for($k=0;$k<$register_json["count"];$k++){
+					if($register_json["results"][$k]["offered_course"]==$offered_course_id && $register_json["results"][$k]["student"]==$student_id){
 						$array=explode("/", $register_json["results"][$j]["url"]);
 						$register_id=$array[count($array)-2];
-						for($l=0;$l<count($register_notes_json["results"]);$l++){
+						for($l=0;$l<$register_notes_json["count"];$l++){
 							if($register_notes_json["results"][$l]["register"]==$register_id){
 								$vize=intval($register_notes_json["results"][$l]["mid_exam"]);
 								if($register_notes_json["results"][$l]["make_up_exam_status"]!="true"){
 									$final=intval($register_notes_json["results"][$l]["final_exam"]);
-									$ort=(((0.4)*$vize)+((0.6)*$final));	
+									$ort=(((0.4)*$vize)+((0.6)*$final));
+                                    $ort=round($ort,0);	
 								}
 								else
 								{
 									$but=intval($register_notes_json["results"][$l]["make_up_exam"]);
 									$ort=(((0.4)*$vize)+((0.6)*$but));
+                                    $ort=round($ort,0);
 								}
 								switch ($ort){
 										case $ort==0:
@@ -139,10 +159,6 @@ for($i=1;$i<=$active_record_semester;$i++){
 $genel_kredi=0;
 $genel_ortalama=0;
 ?>
-
-
-
-
 
 
 <section id="main-content">
