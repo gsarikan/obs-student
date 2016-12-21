@@ -96,9 +96,7 @@
                                     <span class="subject">
 										<span class="from">Mühendislik Fakültesi</span>
                                     </span>
-                                    <span class="message">
-                                        Formal Diller İptal Olmuştur!
-                                    </span>
+                                    Formal Diller İptal Olmuştur!
                                 </a>
                             </li>
                            
