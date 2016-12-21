@@ -1,18 +1,5 @@
 <?php
 
-function getApi($token,$url){
-    $response = \Httpful\Request::get($url)
-        ->addHeaders(array(
-            'Authorization' => 'Token '.$token,
-            'Content-Type' => 'application/json'))
-        ->expectsJson()
-        ->send();
-		
-			return json_decode($response,true);
-		
-	
-    //return json_decode($response,true);
-}
 $user_name=$_SESSION["userName"];
 $token=$_SESSION["key"];
 $users_json=getApi($token,'http://127.0.0.1:8000/users/?format=json');
