@@ -94,7 +94,7 @@
                             <li>
                                 <a href="#">
                                     <span class="subject">
-										<span class="from">Mühendislik Fakültesi</span>
+					<span class="from">Mühendislik Fakültesi</span>
                                     </span>
                                     Formal Diller İptal Olmuştur!
                                 </a>
