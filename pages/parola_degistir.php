@@ -80,21 +80,21 @@
 												  <input type="hidden" name="user_id" id="user_id" value="<?php echo "$user_id" ?>">  
 												   
 												  <div class="form-group">	 
-													  <label class="col-lg-2 control-label">Eski Şifreniz</label>             
+													  <label class="col-lg-2 control-label"><strong>Eski Şifreniz</strong></label>             
 													  <div class="col-lg-6">
                                                           <input type="password" maxlength="128" class="form-control" name="old_password" id="old_password" placeholder="Eski Şifre">
                                                       </div>
                                                   </div>
 												  
 												  <div class="form-group"> 
-                                                      <label class="col-lg-2 control-label">Yeni Şifreniz</label>
+                                                      <label class="col-lg-2 control-label"><strong>Yeni Şifreniz</strong></label>
                                                       <div class="col-lg-6">
                                                           <input type="password" maxlength="128" class="form-control" name="new_password1" id="new_password1" placeholder="Yeni Şifre">
                                                       </div>
                                                   </div>
 												  
 												  <div class="form-group"> 
-                                                      <label class="col-lg-2 control-label">Yeni Şifreniz (Tekrar)</label>
+                                                      <label class="col-lg-2 control-label"><strong>Yeni Şifreniz (Tekrar)</strong></label>
                                                       <div class="col-lg-6">
                                                           <input type="password" maxlength="128" class="form-control" name="new_password2" id="new_password2" placeholder="Yeni Şifre (Tekrar)">
                                                       </div>
