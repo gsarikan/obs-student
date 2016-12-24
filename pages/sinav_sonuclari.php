@@ -160,7 +160,8 @@ function getNote($courseId){
                 }
             }
         }
- 
+	(isset($_POST['semester'])) ? $semester = $_POST['semester'] : $semester=$active_record_semester;
+	
 ?>
 
 <section id="main-content">
@@ -174,14 +175,16 @@ function getNote($courseId){
          
 
               <header class="panel-heading no-border">
-                    <form action="#" method="POST">      
-                    <select class="form-control input-lg m-bot15" name="semester">
-                        <?php for($i=1;$i<=$active_record_semester;$i++){  ?> 
+                    <form action="" method="POST">      
+                    
+					<select class="form-control input-lg m-bot15" name="semester">
+                         
+						<?php for($i=1;$i<=$active_record_semester;$i++){  ?> 
                         
-                             <option value="<?php echo $i; ?>"?><?php echo $i; ?>. Yarıyıl</option>
+                             <option <?php if ($semester==$i) echo 'selected'; ?> value="<?php echo $i; ?>" ><?php echo $i; ?>. Yarıyıl</option>
                              
                         <?php } ?>
-                            </select>
+                    </select>
                             <input type="submit" name="submit" value="Görüntüle" />
                     </form>
 
@@ -204,6 +207,10 @@ function getNote($courseId){
 
                               <?php 
                              
+							 
+							 //(isset($_POST["semester"])) ? $i = $_POST["semester"] : $i=1;
+                            //$i=$_POST['semester'];
+							if(isset($_POST['semester'])){
                             $i=$_POST['semester'];
                               foreach($courses_id[$i] as $value){
 		                            for($j=0;$j<count($courses_json["results"]);$j++){
@@ -248,7 +255,10 @@ function getNote($courseId){
                                   <td><?php  echo $notes[4]; ?></td>
 
                               </tr>
-                              <?php  }}} ?>
+                              <?php  }}} }
+							  
+							  
+							  ?>
 
                               </tbody>
                           </table>
