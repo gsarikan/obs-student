@@ -30,7 +30,7 @@ for($i=0;$i<$students_json["count"];$i++){
     }
 }
 for($i=0;$i<$departments_json["count"];$i++){
-    if(intval($departments_json["results"][$i]["department_code"])==intval($department_id)){
+    if($departments_json["results"][$i]["id"]==$department_id){
         $faculty_id=$departments_json["results"][$i]["faculty"];
         $department_name=$departments_json["results"][$i]["department_name"];
     }
@@ -49,34 +49,52 @@ for($i=1;$i<=$active_record_semester;$i++)
 $k=1;
 
 for($i=0;$i<$register_json["count"];$i++){
-    if($register_json["results"][$i]["student"]==$student_id){
-        $offered_course_id=$register_json["results"][$i]["offered_course"];
-        for($j=0;$j<$offered_course_json["count"];$j++){
-			$array=explode("/", $offered_course_json["results"][$j]["url"]);
-			if($array[count($array)-2]==$offered_course_id){
-				$l=$offered_course_json["results"][$j]["semester"];
-                echo $l."->".$offered_course_json["results"][$j]["course"];
-                array_push($courses_id[$l],$offered_course_json["results"][$j]["course"]);
+		if($register_json["results"][$i]["student"]==$student_id){
+			$offered_course_id=$register_json["results"][$i]["offered_course"];			
+			for($j=0;$j<$offered_course_json["count"];$j++){			
+				if($offered_course_json["results"][$j]["id"]==$offered_course_id){
+					$l=$offered_course_json["results"][$j]["semester"];
+					if(in_array($offered_course_json["results"][$j]["course"],$courses_id[$l])==false){
+                        for($m=0;$m<$register_notes_json["count"];$m++){
+                            if($register_json["results"][$i]["id"]==$register_notes_json["results"][$m]["register"]&& $register_notes_json["results"][$m]["success"]==true)
+                                array_push($courses_id[$l],$offered_course_json["results"][$j]["course"]);
+                        }
+                        
+					}
+				}
+				
 			}
 		}
-    }
-}
-
+	}
 
 for($i=1;$i<=$active_record_semester;$i++){
 	$harf_notu[$i]=array();
 }
 
-for($i=1;$i<=$active_record_semester;$i++){
+$list=array();
+	for($i=1;$i<=$active_record_semester;$i++){
 	foreach($courses_id[$i] as $value){
 		for($j=0;$j<$offered_course_json["count"];$j++){
 			if($value==$offered_course_json["results"][$j]["course"]){
-				$array=explode("/", $offered_course_json["results"][$j]["url"]);
-				$offered_course_id=$array[count($array)-2];
+				if(in_array($value,$list)==false){
+					array_push($list,$value);
+					$en_buyuk=$offered_course_json["results"][$j]["active_year"];
+					$offered_course_id=$offered_course_json["results"][$j]["id"];
+				for($x=0;$x<$offered_course_json["count"];$x++){
+							
+						if($offered_course_json["results"][$j]["course"]==$offered_course_json["results"][$x]["course"]){
+							if($offered_course_json["results"][$j]["active_year"]<$offered_course_json["results"][$x]["active_year"]
+								&&
+								$en_buyuk<$offered_course_json["results"][$x]["active_year"]
+                            ){
+								$en_buyuk=$offered_course_json["results"][$x]["active_year"];
+								$offered_course_id=$offered_course_json["results"][$x]["id"];
+							}
+						}											
+				}				
 				for($k=0;$k<$register_json["count"];$k++){
 					if($register_json["results"][$k]["offered_course"]==$offered_course_id && $register_json["results"][$k]["student"]==$student_id){
-						$array=explode("/", $register_json["results"][$k]["url"]);
-						$register_id=$array[count($array)-2];
+						$register_id=$register_json["results"][$k]["id"];
 						for($l=0;$l<$register_notes_json["count"];$l++){
 							if($register_notes_json["results"][$l]["register"]==$register_id){
 								$vize=intval($register_notes_json["results"][$l]["mid_exam"]);
@@ -133,11 +151,13 @@ for($i=1;$i<=$active_record_semester;$i++){
 											break;  										
 								}
 								array_push($harf_notu[$i],$harf);
+
 							}
 							
 						}
 					}
 				}
+			}
 			}
 		}
 	}
