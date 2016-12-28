@@ -15,16 +15,14 @@ $lecturers_json=getApi($token,'http://127.0.0.1:8000/lecturers/?format=json');
 
 for($i=0;$i<$users_json["count"];$i++){
     if($users_json["results"][$i]["username"]==$user_name){
-        $array=explode("/", $users_json["results"][$i]["url"]);
-        $user_id=$array[count($array)-2];
+        $user_id=$users_json["results"][$i]["id"];
     }
 }
 
 for($i=0;$i<$students_json["count"];$i++){
     if($students_json["results"][$i]["user"]==$user_id){
         $active_record_semester=$students_json["results"][$i]["active_record_semester"];
-        $array=explode("/", $students_json["results"][$i]["url"]);
-        $student_id=$array[count($array)-2];
+        $student_id=$students_json["results"][$i]["id"];
     }
 }
 
@@ -37,8 +35,7 @@ for($i=0;$i<count($register_json["results"]);$i++){
     if($register_json["results"][$i]["student"]==$student_id){
         $offered_course_id=$register_json["results"][$i]["offered_course"];
         for($j=0;$j<count($offered_course_json["results"]);$j++){
-			$array=explode("/", $offered_course_json["results"][$j]["url"]);
-			if($array[count($array)-2]==$offered_course_id){
+			if($offered_course_json["results"][$j]["id"]==$offered_course_id){
 				$l=$offered_course_json["results"][$j]["semester"];
 				array_push($courses_id[$l],$offered_course_json["results"][$j]["course"]);
 			}
@@ -47,7 +44,7 @@ for($i=0;$i<count($register_json["results"]);$i++){
 }
 
 
-function getNote($courseId){
+function getNote($courseId,$donem){
         $user_name=$_SESSION["userName"];
         $token=$_SESSION["key"];
         $register_json=getApi($token,'http://127.0.0.1:8000/registers/?format=json');
@@ -66,29 +63,24 @@ function getNote($courseId){
         $value=$courseId;
         for($i=0;$i<$users_json["count"];$i++){
             if($users_json["results"][$i]["username"]==$user_name){
-                $array=explode("/", $users_json["results"][$i]["url"]);
-                $user_id=$array[count($array)-2];
+                $user_id=$users_json["results"][$i]["id"];
             }
         }
         for($i=0;$i<$students_json["count"];$i++){
             if($students_json["results"][$i]["user"]==$user_id){
                 $active_record_semester=$students_json["results"][$i]["active_record_semester"];
-                $array=explode("/", $students_json["results"][$i]["url"]);
-                $student_id=$array[count($array)-2];
+                $student_id=$students_json["results"][$i]["id"];
             }
         }
             for($j=0;$j<count($offered_course_json["results"]);$j++){
-                if($value==$offered_course_json["results"][$j]["course"]){
-                    $array=explode("/", $offered_course_json["results"][$j]["url"]);
-                    $offered_course_id=$array[count($array)-2];
+                if($value==$offered_course_json["results"][$j]["course"] && $donem==$offered_course_json["results"][$j]["semester"] ){
+                    $offered_course_id=$offered_course_json["results"][$j]["id"];
                     for($k=0;$k<count($register_json["results"]);$k++){
                         if($register_json["results"][$k]["offered_course"]==$offered_course_id && $register_json["results"][$k]["student"]==$student_id){
-                            $array=explode("/", $register_json["results"][$k]["url"]);
-                            $register_id=$array[count($array)-2];
+                            $register_id=$register_json["results"][$k]["id"];
                             for($l=0;$l<count($register_notes_json["results"]);$l++){
                                 if($register_notes_json["results"][$l]["register"]==$register_id){
                                     $vize=intval($register_notes_json["results"][$l]["mid_exam"]);
-                                    //array_push($notes,$vize);
                                     
                                     if($register_notes_json["results"][$l]["make_up_exam_status"]!="true"){
                                         $final=intval($register_notes_json["results"][$l]["final_exam"]);
@@ -185,7 +177,7 @@ function getNote($courseId){
                              
                         <?php } ?>
                     </select>
-                            <input type="submit" name="submit" value="Görüntüle" />
+                            <input type="submit" class="btn btn-primary" name="submit" value="Görüntüle" />
                     </form>
 
                           </header>
@@ -214,11 +206,8 @@ function getNote($courseId){
                             $i=$_POST['semester'];
                               foreach($courses_id[$i] as $value){
 		                            for($j=0;$j<count($courses_json["results"]);$j++){
-			                            $array=explode("/", $courses_json["results"][$j]["url"]);
-			                            if($array[count($array)-2]==$value){
-                                        
-                                            $notes=getNote($value);
-                                            
+			                            if($courses_json["results"][$j]["id"]==$value){
+                                            $notes=getNote($courses_json["results"][$j]["id"],$i);
                             ?>
                                              
                               <tr>
