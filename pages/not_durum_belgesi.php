@@ -53,7 +53,17 @@ for($i=0;$i<$register_json["count"];$i++){
 			$offered_course_id=$register_json["results"][$i]["offered_course"];			
 			for($j=0;$j<$offered_course_json["count"];$j++){			
 				if($offered_course_json["results"][$j]["id"]==$offered_course_id){
-					$l=$offered_course_json["results"][$j]["semester"];
+					$ders_donem=$offered_course_json["results"][$j]["semester"];
+					for($x=0;$x<$offered_course_json["count"];$x++){
+						if($offered_course_json["results"][$j]["course"]==$offered_course_json["results"][$x]["course"]){
+							if($offered_course_json["results"][$x]["semester"]<$ders_donem)
+								$ders_donem=$offered_course_json["results"][$x]["semester"];
+						}
+						
+					}
+					
+					$l=$ders_donem;
+					//$l=$offered_course_json["results"][$j]["semester"];
 					if(in_array($offered_course_json["results"][$j]["course"],$courses_id[$l])==false){
                         for($m=0;$m<$register_notes_json["count"];$m++){
                             if($register_json["results"][$i]["id"]==$register_notes_json["results"][$m]["register"]&& $register_notes_json["results"][$m]["success"]==true)
