@@ -7,7 +7,8 @@
 	
 	$users_json=getApi($user_token,'http://127.0.0.1:8000/users/?format=json');
 	$students_json=getApi($user_token,'http://127.0.0.1:8000/students/?format=json');
-	
+	$announcements_json=getApi($user_token,'http://127.0.0.1:8000/announcements/2/?format=json');
+
 	for($i=0;$i<$users_json["count"];$i++)
 	{
 		if($users_json["results"][$i]["username"]==$user_name)
@@ -86,23 +87,28 @@
                     <li id="mail_notificatoin_bar" class="dropdown">
                         <a data-toggle="dropdown" class="dropdown-toggle" href="#">
                             <i class="icon-envelope-l"></i>
+                            <span class="badge bg-important">1</span>
                         </a>
-                        <ul class="dropdown-menu extended inbox">
+                         <ul class="dropdown-menu extended inbox">
                             <div class="notify-arrow notify-arrow-blue"></div>
                             <li>
-                                <p class="blue" align="center">Toplam 1 Duyuru Var</p>
+                                <p class="blue">Toplam 1 Duyuru Var</p>
                             </li>
                             <li>
-                                <a href="#">
+                                <a href="index.php?path=duyuru&id=1">
+                                    <span class="photo"><img alt="avatar" src="./img/comu_logo.png"></span>
                                     <span class="subject">
-					<span class="from">Mühendislik Fakültesi</span>
+                                    <span class="from">COMU</span>
+                                    <span class="time"><?php echo $announcements_json["created_date"]; ?></span>
                                     </span>
-                                    Formal Diller İptal Olmuştur!
+                                    <span >
+                                        <?php echo $announcements_json["title"]; ?>
+                                    </span>
                                 </a>
                             </li>
                            
                             <li>
-                                <a href="?path=duyurular" align="center">Tüm Duyuruları Gör</a>
+                                <a href="?path=duyurular">Tüm Mesajları Gör</a>
                             </li>
                         </ul>
                     </li>
